@@ -1,12 +1,13 @@
 <?php
-namespace Payum\Paypal\ProCheckout\Nvp;
+namespace Payum\Paypal\ProCheckout\Nvp\Model;
 
 use Payum\Exception\InvalidArgumentException;
+use Payum\Exception\LogicException;
 
 /**
  * @see https://www.x.com/sites/default/files/payflowgateway_guide.pdf
  */
-class PaymentInstruction implements \ArrayAccess, \IteratorAggregate
+class PaymentDetails implements \ArrayAccess, \IteratorAggregate
 {
     protected $request_currency;
     protected $request_amt;
@@ -42,7 +43,6 @@ class PaymentInstruction implements \ArrayAccess, \IteratorAggregate
     protected $response_correlationid;
     protected $response_amexid;
     protected $response_amexposdata;
-    protected $response_amt;
     protected $response_origamt;
     protected $response_cardtype;
     protected $response_emailmatch;
@@ -63,7 +63,7 @@ class PaymentInstruction implements \ArrayAccess, \IteratorAggregate
     /**
      * @param string $currency
      *
-     * @return PaymentInstruction
+     * @return \Payum\Paypal\ProCheckout\Nvp\Model\PaymentDetails
      */
     public function setCurrency($currency)
     {
@@ -82,7 +82,7 @@ class PaymentInstruction implements \ArrayAccess, \IteratorAggregate
     /**
      * @param string $amt
      *
-     * @return PaymentInstruction
+     * @return \Payum\Paypal\ProCheckout\Nvp\Model\PaymentDetails
      */
     public function setAmt($amt)
     {
@@ -101,7 +101,7 @@ class PaymentInstruction implements \ArrayAccess, \IteratorAggregate
     /**
      * @param string $acct
      *
-     * @return PaymentInstruction
+     * @return \Payum\Paypal\ProCheckout\Nvp\Model\PaymentDetails
      */
     public function setAcct($acct)
     {
@@ -120,7 +120,7 @@ class PaymentInstruction implements \ArrayAccess, \IteratorAggregate
     /**
      * @param string $expDate
      *
-     * @return PaymentInstruction
+     * @return \Payum\Paypal\ProCheckout\Nvp\Model\PaymentDetails
      */
     public function setExpDate($expDate)
     {
@@ -139,7 +139,7 @@ class PaymentInstruction implements \ArrayAccess, \IteratorAggregate
     /**
      * @param string $cvv2
      *
-     * @return PaymentInstruction
+     * @return \Payum\Paypal\ProCheckout\Nvp\Model\PaymentDetails
      */
     public function setCvv2($cvv2)
     {
@@ -158,7 +158,7 @@ class PaymentInstruction implements \ArrayAccess, \IteratorAggregate
     /**
      * @param string $billToFirstName
      *
-     * @return PaymentInstruction
+     * @return \Payum\Paypal\ProCheckout\Nvp\Model\PaymentDetails
      */
     public function setBillToFirstName($billToFirstName)
     {
@@ -177,7 +177,7 @@ class PaymentInstruction implements \ArrayAccess, \IteratorAggregate
     /**
      * @param string $billToLastName
      *
-     * @return PaymentInstruction
+     * @return \Payum\Paypal\ProCheckout\Nvp\Model\PaymentDetails
      */
     public function setBillToLastName($billToLastName)
     {
@@ -196,7 +196,7 @@ class PaymentInstruction implements \ArrayAccess, \IteratorAggregate
     /**
      * @param string $billToLastStreet
      *
-     * @return PaymentInstruction
+     * @return \Payum\Paypal\ProCheckout\Nvp\Model\PaymentDetails
      */
     public function setBillToStreet($billToLastStreet)
     {
@@ -215,7 +215,7 @@ class PaymentInstruction implements \ArrayAccess, \IteratorAggregate
     /**
      * @param string $billToLastCity
      *
-     * @return PaymentInstruction
+     * @return \Payum\Paypal\ProCheckout\Nvp\Model\PaymentDetails
      */
     public function setBillToCity($billToLastCity)
     {
@@ -234,7 +234,7 @@ class PaymentInstruction implements \ArrayAccess, \IteratorAggregate
     /**
      * @param string $billToLastState
      *
-     * @return PaymentInstruction
+     * @return \Payum\Paypal\ProCheckout\Nvp\Model\PaymentDetails
      */
     public function setBillToState($billToLastState)
     {
@@ -253,7 +253,7 @@ class PaymentInstruction implements \ArrayAccess, \IteratorAggregate
     /**
      * @param string $billToLastZip
      *
-     * @return PaymentInstruction
+     * @return \Payum\Paypal\ProCheckout\Nvp\Model\PaymentDetails
      */
     public function setBillToZip($billToLastZip)
     {
@@ -272,7 +272,7 @@ class PaymentInstruction implements \ArrayAccess, \IteratorAggregate
     /**
      * @param string $billToLastCountr
      *
-     * @return PaymentInstruction
+     * @return \Payum\Paypal\ProCheckout\Nvp\Model\PaymentDetails
      */
     public function setBillToCountry($billToLastCountry)
     {
@@ -335,10 +335,14 @@ class PaymentInstruction implements \ArrayAccess, \IteratorAggregate
             $this->$name = $value;
         } 
     }
-    
+
     public function toNvp()
     {
-        return array_filter($this->getRequest());
+        $nvp = array_replace($this->getRequest(),$this->getResponse());
+
+        return array_filter($nvp, function($value) {
+            return false === is_null($value);
+        });
     }
 
     /**
